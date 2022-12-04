@@ -74,8 +74,9 @@ def perspect_transform(img, src, dst):
            
     M = cv2.getPerspectiveTransform(src, dst)
     warped = cv2.warpPerspective(img, M, (img.shape[1], img.shape[0]))# keep same size as input image
+    mask = cv2.warpPerspective(np.ones_like(img[: ,: , 0]), M, (img.shape[1], img.shape[0]))
     
-    return warped
+    return warped, mask
 
 
 # Apply the above functions in succession and update the Rover state accordingly
@@ -102,8 +103,51 @@ def perception_step(Rover):
     # Update Rover pixel distances and angles
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
+
+     # Camera image from the current Rover state (Rover.img)
+    img = Rover.img
+   
+    # 1) Define source and destination points for perspective transform
+    # Define calibration box in source and destination coordintates.
+    #   These source and destination points are defined to warp the image
+    #   to a grid where each 10x10 pixel square represents 1 square meter
+    dst_size = 5
+    # Set a bottom offset to account for the fact that the bottom of the image
+    #   is not the position of the rover but a bit in front of it
+    bottom_offset = 6
+    src = np.float32([[14, 140], [300, 140], [200, 96], [118, 96]])
+    dst = np.float32([
+        [img.shape[1]/2 - dst_size, img.shape[0] - bottom_offset],
+        [img.shape[1]/2 + dst_size, img.shape[0] - bottom_offset],
+        [img.shape[1]/2 + dst_size, img.shape[0] - 2 * dst_size - bottom_offset],
+        [img.shape[1]/2 - dst_size, img.shape[0] - 2 * dst_size - bottom_offset]])
+
+    # 2) Apply perspective transform
+    warped, mask = perspect_transform(img=img, src=src, dst=dst)
+
+    navigable_pixels = color_thresh(warped)
+    obstacle_pixels = np.abs(np.float32(navigable_pixels) - 1) * mask
+    #rock_pixels = 
+
+    x_nav, y_nav = rover_coords(navigable_pixels)
+    x_rov_pos, y_rov_pos = Rover.pos
+    yaw = Rover.yaw
+    x_obs, y_obs = rover_coords(obstacle_pixels)
+
+    worldmap_size = Rover.worldmap.shape[0]
+    scale = dst_size * 2
+    x_nav_world, y_nav_world = pix_to_world(x_nav, y_nav, x_rov_pos, y_rov_pos, yaw, worldmap_size, scale)
+    x_obs_world, y_obs_world = pix_to_world(x_obs, y_obs, x_rov_pos, y_rov_pos, yaw, worldmap_size, scale)
+
+    Rover.worldmap[x_nav_world, y_nav_world, 2] = 255
+    Rover.worldmap[x_obs_world, y_obs_world, 0] = 255
+
+    #resolve overlap of nav and obstacles
+    nav_pix = Rover.worldmap[: , :, 2] > 0
+    Rover.worldmap[nav_pix, 0] = 0
     
- 
-    
-    
+    #calculate steering angle form navigable coords
+    dist, angles = to_polar_coords(x_nav, y_nav)
+    mean_dir = np.mean(angles)
+
     return Rover
