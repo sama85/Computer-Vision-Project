@@ -15,7 +15,10 @@ from io import BytesIO, StringIO
 import json
 import pickle
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import time
+
+debug_mode = True
 
 # Import functions for perception and decision making
 from perception import perception_step
@@ -69,7 +72,8 @@ class RoverState():
         # Update this image to display your intermediate analysis steps
         # on screen in autonomous mode
         self.vision_image = np.zeros((160, 320, 3), dtype=np.float)
-        # Worldmap
+        self.vision_warped = np.zeros((160, 320, 3), dtype=np.float)
+        self.vision_threshed = np.zeros((160, 320), dtype=np.float)
         # Update this image with the positions of navigable terrain
         # obstacles and rock samples
         self.worldmap = np.zeros((200, 200, 3), dtype=np.float)
@@ -92,6 +96,15 @@ frame_counter = 0
 second_counter = time.time()
 fps = None
 
+if debug_mode:
+    # fig = plt.figure()
+    plt.ion()
+    ax1 = plt.subplot(221)
+    im1 = ax1.imshow(Rover.vision_image)
+    ax2 = plt.subplot(222)
+    im2 = ax2.imshow(Rover.vision_warped)
+    # ax3 = plt.subplot(223)
+    # im3 = ax3.imshow(Rover.vision_threshed)
 
 # Define telemetry function for what to do with incoming data
 @sio.on('telemetry')
@@ -115,6 +128,16 @@ def telemetry(sid, data):
             # Execute the perception and decision steps to update the Rover's state
             Rover = perception_step(Rover)
             Rover = decision_step(Rover)
+
+            if debug_mode:
+                im1.set_data(Rover.vision_image.astype(np.uint8))
+                im2.set_data(Rover.vision_warped.astype(np.uint8))
+                # im3.set_data(Rover.vision_threshed)                
+                # plt.draw()
+                plt.gcf().canvas.draw_idle()
+                plt.gcf().canvas.start_event_loop(0.01)
+                # plt.pause(0.1)
+
 
             # Create output images to send to server
             out_image_string1, out_image_string2 = create_output_images(Rover)
