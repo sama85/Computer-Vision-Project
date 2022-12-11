@@ -156,10 +156,13 @@ def perception_step(Rover):
     # Example: Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 1
     #          Rover.worldmap[rock_y_world, rock_x_world, 1] += 1
     #          Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 1
-    Rover.worldmap[y_obs_world, x_obs_world, 0] += 1
-    Rover.worldmap[y_nav_world, x_nav_world, 2] += 1
-    if rock_pixels.any():
-        Rover.worldmap[y_rock_world, x_rock_world, :] += 1
+    # print(Rover.is_Stable())
+    if Rover.is_Stable():
+        #Update the Rover worldmap only when the rover is stable
+        Rover.worldmap[y_obs_world, x_obs_world, 0] += 1
+        Rover.worldmap[y_nav_world, x_nav_world, 2] += 1
+        if rock_pixels.any():
+            Rover.worldmap[y_rock_world, x_rock_world, :] += 1
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     # Update Rover pixel distances and angles
