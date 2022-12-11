@@ -84,6 +84,10 @@ class RoverState():
         self.nessar_sample = 0  # Will be set to telemetry value data["near_sample"]
         self.picking_up = 0  # Will be set to telemetry value data["picking_up"]
         self.send_pickup = False  # Set to True to trigger rock pickup
+        
+    #if the rover's absolute pitch or roll is greater than 0.75
+    #then the rover is not stable
+    #mapping the world while the rover is not stable can cause poor fidelity
     def is_Stable(self) -> bool:
         if (self.pitch < 0.75 or self.pitch > 359.25)\
             and (self.roll < 0.75 or self.roll > 359.25):

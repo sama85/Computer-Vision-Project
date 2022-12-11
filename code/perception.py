@@ -3,10 +3,13 @@ import numpy as np
 import cv2
 
 
-def rock_thresh(img, levels=(110, 110, 50)):
-    rockpix = ( (img[:,:,0] > levels[0]) \
-        & (img[:,:,1] > levels[1]) \
-            & (img[:,:,2] < levels [2]))
+def rock_thresh(img, low_levels=(130, 105, 0),high_levels=(220,190,70)):
+    rockpix = ( (img[:,:,0] > low_levels[0])\
+            & (img[:,:,1] > low_levels[1])  \
+            & (img[:,:,2] > low_levels [2]) \
+            & (img[:,:,0] < high_levels [0])\
+            & (img[:,:,1] < high_levels[1]) \
+            & (img[:,:,2] < high_levels [2]))
 
     color_select = np.zeros_like(img[:,:,0])
     color_select[rockpix] = 1
@@ -124,7 +127,7 @@ def perception_step(Rover):
     navigable_pixels = color_thresh(warped)
     Rover.vision_threshed = navigable_pixels
     obstacle_pixels = np.abs(np.float32(navigable_pixels) - 1) * mask
-    rock_pixels = rock_thresh(img=warped, levels=(110, 110, 50))
+    rock_pixels = rock_thresh(img=warped)
 
     # 4) Update Rover.vision_image (displayed on left side of screen)
     Rover.vision_image[:, :, 0] = obstacle_pixels * 255
