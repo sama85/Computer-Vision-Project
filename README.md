@@ -29,7 +29,6 @@ source activate vision-project
 
 ------------
 
-
 ## Running autonomous mode
 
 The rover can then run autonomously by running the following:
@@ -42,6 +41,7 @@ python drive_rover.py
 ```
 After that you can launch the simulator and choose Autonomous mode
 
+------------
 
 ## Enabling debugging mode
 
