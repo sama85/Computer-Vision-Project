@@ -138,6 +138,8 @@ def perception_step(Rover):
     x_nav, y_nav = rover_coords(binary_img=navigable_pixels)
     x_obs, y_obs = rover_coords(binary_img=obstacle_pixels)
     x_rock, y_rock = rover_coords(binary_img=rock_pixels)
+    Rover.x_nav = x_nav
+    Rover.y_nav = y_nav
 
     # 6) Convert rover centric pixel values to world coordinates
     scale = dst_size * 2

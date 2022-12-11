@@ -17,8 +17,9 @@ import pickle
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import time
+from matplotlib.patches import FancyArrow
 
-debug_mode = False
+debug_mode = True
 
 # Import functions for perception and decision making
 from perception import perception_step
@@ -84,6 +85,8 @@ class RoverState():
         self.nessar_sample = 0  # Will be set to telemetry value data["near_sample"]
         self.picking_up = 0  # Will be set to telemetry value data["picking_up"]
         self.send_pickup = False  # Set to True to trigger rock pickup
+        self.x_nav = np.zeros(1)
+        self.y_nav = np.zeros(1)
         
     #if the rover's absolute pitch or roll is greater than 0.75
     #then the rover is not stable
@@ -118,7 +121,13 @@ if debug_mode:
     ax3 = plt.subplot(223)
     ax3.set_title('Thresholded image')
     im3 = ax3.imshow(Rover.vision_threshed, cmap='gray')
-    
+    ax4 = plt.subplot(224)
+    ax4.set_title("Steering Angle")
+    im4, = ax4.plot(Rover.x_nav, Rover.y_nav, '.')
+    ax4.set_ylim(-160, 160)
+    ax4.set_xlim(0, 160)
+    arrow = FancyArrow(0,0,0,0)
+    a = ax4.add_patch(arrow)
 
 # Define telemetry function for what to do with incoming data
 @sio.on('telemetry')
@@ -147,6 +156,18 @@ def telemetry(sid, data):
                 im1.set_data(Rover.img)
                 im2.set_data(Rover.vision_warped.astype(np.uint8))
                 im3.set_data(Rover.vision_threshed)
+                im4.set_data(Rover.x_nav, Rover.y_nav)
+
+                global a
+                a.remove()
+
+                arrow_length = 100
+                x_arrow = arrow_length * np.cos(np.mean(Rover.nav_angles))
+                y_arrow = arrow_length * np.sin(np.mean(Rover.nav_angles))
+                arrow = FancyArrow(0,0,x_arrow,y_arrow, color="red",zorder=2,
+                                    head_width=10, width=2)
+                a = ax4.add_patch(arrow)                
+    
                 im3.autoscale()                
                 # plt.draw()
                 plt.gcf().canvas.draw_idle()
