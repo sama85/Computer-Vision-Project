@@ -32,7 +32,7 @@ source activate vision-project
 
 ## Running autonomous mode
 
-You can then control the rover autonomously by running the following:
+The rover can then run autonomously by running the following:
 
 ``` 
 cd <PATH TO PROJECT DIRECTORY>/code 
@@ -42,3 +42,10 @@ python drive_rover.py
 ```
 After that you can launch the simulator and choose Autonomous mode
 
+
+## Enabling debugging mode
+
+You can use debugging mode by enabling the flag debug_mode in the drive_rover.py file. 
+When debugging mode is running, a window will open next to the simulator showing the different stages of the image processing. 
+
+Please note that enabling the debugging mode can decrease FPS and can affect the fidelity.
