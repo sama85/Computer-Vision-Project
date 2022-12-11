@@ -37,7 +37,7 @@ ground_truth = mpimg.imread('../calibration_images/map_bw.png')
 # This next line creates arrays of zeros in the red and blue channels
 # and puts the map into the green channel.  This is why the underlying
 # map output looks green in the display image
-ground_truth_3d = np.dstack((ground_truth * 0, ground_truth * 255, ground_truth * 0)).astype(np.float)
+ground_truth_3d = np.dstack((ground_truth * 0, ground_truth * 255, ground_truth * 0)).astype(float)
 
 
 # Define RoverState() class to retain rover state parameters
@@ -46,7 +46,7 @@ class RoverState():
         self.start_time = None  # To record the start time of navigation
         self.total_time = None  # To record total duration of naviagation
         self.sample_seen = False  # If a sample is detected, change to True
-        self.img = None  # Current camera image
+        self.img = np.zeros((160, 320, 3), dtype=float)  # Current camera image
         self.pos = None  # Current position (x, y)
         self.yaw = None  # Current yaw angle
         self.pitch = None  # Current pitch angle
@@ -71,12 +71,12 @@ class RoverState():
         # Image output from perception step
         # Update this image to display your intermediate analysis steps
         # on screen in autonomous mode
-        self.vision_image = np.zeros((160, 320, 3), dtype=np.float)
-        self.vision_warped = np.zeros((160, 320, 3), dtype=np.float)
-        self.vision_threshed = np.zeros((160, 320), dtype=np.float)
+        self.vision_image = np.zeros((160, 320, 3), dtype=float)
+        self.vision_warped = np.zeros((160, 320, 3), dtype=float)
+        self.vision_threshed = np.zeros((160, 320), dtype=float)
         # Update this image with the positions of navigable terrain
         # obstacles and rock samples
-        self.worldmap = np.zeros((200, 200, 3), dtype=np.float)
+        self.worldmap = np.zeros((200, 200, 3), dtype=float)
         self.samples_pos = None  # To store the actual sample positions
         self.samples_to_find = 0  # To store the initial count of samples
         self.samples_located = 0  # To store number of samples located on map
@@ -99,12 +99,17 @@ fps = None
 if debug_mode:
     # fig = plt.figure()
     plt.ion()
+    plt.gcf().canvas.manager.set_window_title('Debugging Window')
     ax1 = plt.subplot(221)
-    im1 = ax1.imshow(Rover.vision_image)
+    ax1.set_title('Rover View')
+    im1 = ax1.imshow(Rover.img)
     ax2 = plt.subplot(222)
+    ax2.set_title('Bird Eye View')
     im2 = ax2.imshow(Rover.vision_warped)
-    # ax3 = plt.subplot(223)
-    # im3 = ax3.imshow(Rover.vision_threshed)
+    ax3 = plt.subplot(223)
+    ax3.set_title('Thresholded image')
+    im3 = ax3.imshow(Rover.vision_threshed, cmap='gray')
+    
 
 # Define telemetry function for what to do with incoming data
 @sio.on('telemetry')
@@ -130,9 +135,10 @@ def telemetry(sid, data):
             Rover = decision_step(Rover)
 
             if debug_mode:
-                im1.set_data(Rover.vision_image.astype(np.uint8))
+                im1.set_data(Rover.img)
                 im2.set_data(Rover.vision_warped.astype(np.uint8))
-                # im3.set_data(Rover.vision_threshed)                
+                im3.set_data(Rover.vision_threshed)
+                im3.autoscale()                
                 # plt.draw()
                 plt.gcf().canvas.draw_idle()
                 plt.gcf().canvas.start_event_loop(0.01)

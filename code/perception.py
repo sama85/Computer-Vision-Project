@@ -122,7 +122,7 @@ def perception_step(Rover):
 
     # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
     navigable_pixels = color_thresh(warped)
-    # Rover.vision_threshed = navigable_pixels
+    Rover.vision_threshed = navigable_pixels
     obstacle_pixels = np.abs(np.float32(navigable_pixels) - 1) * mask
     rock_pixels = rock_thresh(img=warped, levels=(110, 110, 50))
 
