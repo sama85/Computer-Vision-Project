@@ -130,44 +130,42 @@ def GoToSample(Rover):
 
 def GetUnstuck(Rover):
 
-    THROTTLE_SET = 1.0
-    OBS_OFFSET_YAW = 35
+    # THROTTLE_SET = 1.0
+    # OBS_OFFSET_YAW = 35
    
 
-    # Yaw value measured from either
-    # right or left of the obstacle
-    obs_offset_yaw = np.absolute(Rover.yaw - Rover.stuck_heading)
-    if obs_offset_yaw < OBS_OFFSET_YAW:
-        Rover.throttle = 0
-        Rover.brake = 0
-        Rover.steer = Rover.MAX_STEER_RIGHT
-        # ..at witch point drive straight
-    else:
-        Rover.brake = 0
-        Rover.steer = 0
-        Rover.throttle = THROTTLE_SET
+    # # Yaw value measured from either
+    # # right or left of the obstacle
+    # obs_offset_yaw = np.absolute(Rover.yaw - Rover.stuck_heading)
+    # if obs_offset_yaw < OBS_OFFSET_YAW:
+    #     Rover.throttle = 0
+    #     Rover.brake = 0
+    #     Rover.steer = Rover.MAX_STEER_RIGHT
+    #     # ..at witch point drive straight
+    # else:
+    #     Rover.brake = 0
+    #     Rover.steer = 0
+    #     Rover.throttle = THROTTLE_SET
 
-    # """class for GetUnstuck state."""
-
-    # nav_heading = np.mean(Rover.nav_angles)
-    #     # Stop before avoiding obstacles
-    # if Rover.vel > Rover.MIN_VEL:
-    #         Rover.throttle = 0
-    #         Rover.brake = Rover.MAX_BRAKE
-    #         Rover.steer = 0
-    #     # Turn left or right depending on where nav terrain is
-    # elif Rover.vel <= Rover.MIN_VEL:
-    #         Rover.throttle = 0
-    #         Rover.brake = 0
-    #         # Turn right if nav terrain is more than 20 deg to the right
-    #         if nav_heading < Rover.MAX_STEER_RIGHT:
-    #             Rover.steer = Rover.MAX_STEER_RIGHT
-    #         # Turn left if nav terrain is more than 20 deg to the left
-    #         elif nav_heading > Rover.MAX_STEER_LEFT:
-    #             Rover.steer = Rover.MAX_STEER_LEFT
-    #         # Back up e.g. if nav_angles are NaN
-    #         else:
-    #             Rover.steer = Rover.MAX_STEER_RIGHT
+    nav_heading = np.mean(Rover.nav_angles)
+        # Stop before avoiding obstacles
+    if Rover.vel > Rover.MIN_VEL:
+            Rover.throttle = 0
+            Rover.brake = Rover.MAX_BRAKE
+            Rover.steer = 0
+        # Turn left or right depending on where nav terrain is
+    elif Rover.vel <= Rover.MIN_VEL:
+            Rover.throttle = 0
+            Rover.brake = 0
+            # Turn right if nav terrain is more than 20 deg to the right
+            if nav_heading < Rover.MAX_STEER_RIGHT:
+                Rover.steer = Rover.MAX_STEER_RIGHT
+            # Turn left if nav terrain is more than 20 deg to the left
+            elif nav_heading > Rover.MAX_STEER_LEFT:
+                Rover.steer = Rover.MAX_STEER_LEFT
+            # Back up e.g. if nav_angles are NaN
+            else:
+                Rover.steer = Rover.MAX_STEER_RIGHT
 
 
 def ReturnHome(Rover):
