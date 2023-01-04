@@ -1,15 +1,3 @@
-"""
-Helper functions for drive_rover module.
-
-Used to update rover state as well as rover vision
-and worldmap images on simulation screen
-
-"""
-
-__author__ = 'Salman Hashmi, Ryan Keenan'
-__license__ = 'BSD License'
-
-
 import time
 import base64
 from io import BytesIO, StringIO
