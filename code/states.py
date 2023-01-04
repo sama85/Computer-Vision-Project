@@ -225,16 +225,16 @@ def ReturningHome(Rover):
                 Rover.steer = 0
             elif Rover.vel <= PARK_VEL:
                 Rover.brake = 0
-                # yaw left if home to the left more than 23 deg
-                if Rover.angle_from_home >= 23:
+                # Turn left if home to the left more than 20 deg
+                if Rover.angle_from_home >= Rover.MAX_ANGLE_LEFT:
                     Rover.throttle = 0
                     Rover.steer = Rover.MAX_STEER_LEFT
-                # yaw right if home to the right more than 23 deg
-                elif Rover.angle_from_home <= -23:
+                # Turn right if home to the right more than 20 deg
+                elif Rover.angle_from_home <= Rover.MAX_ANGLE_RIGHT:
                     Rover.throttle = 0
                     Rover.steer = Rover.MAX_STEER_RIGHT
                 # otherwise tread slowly at pure home angle
-                elif -23 < Rover.angle_from_home < 23:
+                elif Rover.MAX_ANGLE_RIGHT < Rover.angle_from_home < Rover.MAX_ANGLE_LEFT:
                     Rover.throttle = PARK_THROTTLE_SET
                     Rover.steer = np.clip(Rover.angle_from_home,
                                           Rover.MAX_STEER_RIGHT,
