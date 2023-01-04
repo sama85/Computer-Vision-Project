@@ -19,9 +19,8 @@ from PIL import Image
 from flask import Flask
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrow
-
+global debug_mode
 debug_mode = True
-
 from perception import perception_step
 import decision
 from supporting_functions import update_rover, create_output_images
@@ -139,27 +138,6 @@ frame_counter = 0
 # Initialize second counter
 second_counter = time.time()
 fps = None
-
-if debug_mode:
-    # fig = plt.figure()
-    plt.ion()
-    plt.gcf().canvas.manager.set_window_title('Debugging Window')
-    ax1 = plt.subplot(221)
-    ax1.set_title('Rover View')
-    im1 = ax1.imshow(Rover.img)
-    ax2 = plt.subplot(222)
-    ax2.set_title('Bird Eye View')
-    im2 = ax2.imshow(Rover.vision_warped)
-    ax3 = plt.subplot(223)
-    ax3.set_title('Thresholded image')
-    im3 = ax3.imshow(Rover.vision_threshed, cmap='gray')
-    ax4 = plt.subplot(224)
-    ax4.set_title("Steering Angle")
-    im4, = ax4.plot(Rover.x_nav, Rover.y_nav, '.')
-    ax4.set_ylim(-160, 160)
-    ax4.set_xlim(0, 160)
-    arrow = FancyArrow(0,0,0,0)
-    a = ax4.add_patch(arrow)
 
 # Define telemetry function for what to do with incoming data
 @sio.on('telemetry')
@@ -304,8 +282,30 @@ if __name__ == '__main__':
         help='Path to image folder.' +
         ' This is where the images from the run will be saved.'
     )
+    parser.add_argument('-debug', action='store_true', default=False)
     args = parser.parse_args()
-
+    debug_mode = False
+    if args.debug:
+        debug_mode = True
+        plt.ion()
+        plt.gcf().canvas.manager.set_window_title('Debugging Window')
+        ax1 = plt.subplot(221)
+        ax1.set_title('Rover View')
+        im1 = ax1.imshow(Rover.img)
+        ax2 = plt.subplot(222)
+        ax2.set_title('Bird Eye View')
+        im2 = ax2.imshow(Rover.vision_warped)
+        ax3 = plt.subplot(223)
+        ax3.set_title('Thresholded image')
+        im3 = ax3.imshow(Rover.vision_threshed, cmap='gray')
+        ax4 = plt.subplot(224)
+        ax4.set_title("Steering Angle")
+        im4, = ax4.plot(Rover.x_nav, Rover.y_nav, '.')
+        ax4.set_ylim(-160, 160)
+        ax4.set_xlim(0, 160)
+        arrow = FancyArrow(0,0,0,0)
+        a = ax4.add_patch(arrow)
+    print("Debugging Mode:",debug_mode)
     #os.system('rm -rf IMG_stream/*')
     if args.image_folder != '':
         print("Creating image folder at {}".format(args.image_folder))
@@ -317,7 +317,6 @@ if __name__ == '__main__':
         print("Recording this run ...")
     else:
         print("NOT recording this run ...")
-
     # wrap Flask application with socketio's middleware
     app = socketio.Middleware(sio, app)
 

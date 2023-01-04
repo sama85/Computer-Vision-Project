@@ -45,7 +45,11 @@ After that you can launch the simulator and choose Autonomous mode
 
 ## Enabling debugging mode
 
-You can use debugging mode by enabling the flag debug_mode in the drive_rover.py file. 
-When debugging mode is running, a window will open next to the simulator showing the different stages of the image processing. 
+You can user dubugging mode by adding the "-debug" argument to the run command.
+```
+python drive_rover.py -debug
+```
+When debugging mode is running, a window will open next to the simulator showing the different stages of the image processing.
+
 
 Please note that enabling the debugging mode can decrease FPS and can affect the fidelity.
