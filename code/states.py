@@ -16,7 +16,7 @@ def FollowingLeftWall(Decider, Rover):
     LARGE_WALL_OFFSET = -9
 
     # Add negative bias to nav angles left of rover to follow wall and not hit wall
-    wall_heading = np.mean(Rover.nav_angles_left) + LARGE_WALL_OFFSET
+    angle_to_wall = np.mean(Rover.nav_angles_left) + LARGE_WALL_OFFSET
     
     # If drive below max velocity, accelerate
     if Rover.vel < Rover.MAX_VEL:
@@ -24,10 +24,10 @@ def FollowingLeftWall(Decider, Rover):
     else:
         Rover.throttle = 0
     
-    # Steer to keep at heading that follows wall
+    # Steer to keep at angle that follows wall
     Rover.brake = 0
     #clip angle to be in steering range
-    Rover.steer = np.clip(wall_heading,
+    Rover.steer = np.clip(angle_to_wall,
                               Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
 
     
@@ -66,19 +66,13 @@ def AvoidingLeftWall(Decider, Rover):
         Rover.brake = 0
         Rover.steer = Rover.MAX_STEER_RIGHT
     
-    # """Handle switching from AvoidingLeftWall state."""
-    # if pointed_along_wall(Rover=Rover):
-    #     Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
-
 
 
 def AvoidingObstacles(Decider, Rover):
     """Create a class to represent AvoidingObstacles state."""
 
 
-    nav_heading = np.mean(Rover.nav_angles)
+    nav_angle = np.mean(Rover.nav_angles)
         # Stopping before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
@@ -89,24 +83,14 @@ def AvoidingObstacles(Decider, Rover):
         Rover.throttle = 0
         Rover.brake = 0
             # Turn right if nav terrain is more than 15 deg to the right
-        if nav_heading < Rover.MIN_ANGLE_RIGHT:
+        if nav_angle < Rover.MIN_ANGLE_RIGHT:
             Rover.steer = Rover.MAX_STEER_RIGHT
             # Turn left if nav terrain is more than 15 deg to the left
-        elif nav_heading > Rover.MIN_ANGLE_LEFT:
+        elif nav_angle > Rover.MIN_ANGLE_LEFT:
             Rover.steer = Rover.MAX_STEER_LEFT
             # Back up e.g. if nav_angles are NaN
         else:
             Rover.steer = Rover.MAX_STEER_RIGHT
-
-    # """Handle switching from AvoidingObstacles state."""
-    # stucktime = 2.0
-    # if completed_mission(Rover=Rover):
-    #     Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
-    # elif pointed_along_wall(Rover=Rover):
-    #     Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
-
 
 
 def GoingToSample(Decider, Rover):
@@ -126,24 +110,23 @@ def GoingToSample(Decider, Rover):
     elif(Rover.vel <= APPROACH_VEL):
             # If sample in view
         if rock_pixs >= 1:
-                # Add a right bias to heading so as not to bump in left wall
-            rock_heading = np.mean(Rover.rock_angles) + SMALL_WALL_OFFSET
-                #rock_heading = np.mean(Rover.rock_angles)
+                # Add a right bias to angle so as not to bump in left wall
+            angle_to_rock = np.mean(Rover.rock_angles) + SMALL_WALL_OFFSET
                 # Yaw left if rock sample to left more than 23 deg
-            if rock_heading >= Rover.MIN_ANGLE_LEFT:
+            if angle_to_rock >= Rover.MIN_ANGLE_LEFT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_LEFT
                 # Yaw right if rock sample to right more than -23 deg
-            elif rock_heading <= Rover.MIN_ANGLE_RIGHT:
+            elif angle_to_rock <= Rover.MIN_ANGLE_RIGHT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_RIGHT
-                # Otherwise drive at average rock sample heading
-            elif (Rover.MIN_ANGLE_RIGHT < rock_heading < Rover.MIN_ANGLE_LEFT) or math.isnan(rock_heading):
+                # Otherwise drive at average rock sample angle
+            elif (Rover.MIN_ANGLE_RIGHT < angle_to_rock < Rover.MIN_ANGLE_LEFT) or math.isnan(angle_to_rock):
                 Rover.brake = 0
                 Rover.throttle = THROTTLE_SET
-                Rover.steer = np.clip(rock_heading,
+                Rover.steer = np.clip(angle_to_rock,
                                           Rover.MAX_STEER_RIGHT,
                                           Rover.MAX_STEER_LEFT)
         else:  # rock not in view
@@ -151,41 +134,11 @@ def GoingToSample(Decider, Rover):
             Rover.brake = 0
             Rover.steer = Rover.MAX_STEER_LEFT
 
-    # """Handle switching from GoingToSample state."""
-    # # Time in seconds allowed to remain stuck in this state
-    # stucktime = 4.0
-    # if Rover.near_sample:
-    #     Rover.timer_on = False
-    #     Decider.switch_to_state(Rover, Decider.state[5])  # Stopping
-
-    # elif Decider.is_stuck(Rover=Rover):
-    #     Rover.timer_on = False
-    #     Decider.switch_to_state(Rover, Decider.state[6])  # GettingUnstuck
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
-
 
 
 def GettingUnstuck(Decider, Rover):
 
-    # THROTTLE_SET = 1.0
-    # OBS_OFFSET_YAW = 35
-   
-
-    # # Yaw value measured from either
-    # # right or left of the obstacle
-    # obs_offset_yaw = np.absolute(Rover.yaw - Rover.stuck_heading)
-    # if obs_offset_yaw < OBS_OFFSET_YAW:
-    #     Rover.throttle = 0
-    #     Rover.brake = 0
-    #     Rover.steer = Rover.MAX_STEER_RIGHT
-    #     # ..at witch point drive straight
-    # else:
-    #     Rover.brake = 0
-    #     Rover.steer = 0
-    #     Rover.throttle = THROTTLE_SET
-
-    nav_heading = np.mean(Rover.nav_angles)
+    nav_angle = np.mean(Rover.nav_angles)
         # Stopping before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
             Rover.throttle = 0
@@ -196,32 +149,22 @@ def GettingUnstuck(Decider, Rover):
             Rover.throttle = 0
             Rover.brake = 0
             # Turn right if nav terrain is more than 20 deg to the right
-            if nav_heading < Rover.MAX_STEER_RIGHT:
+            if nav_angle < Rover.MAX_STEER_RIGHT:
                 Rover.steer = Rover.MAX_STEER_RIGHT
             # Turn left if nav terrain is more than 20 deg to the left
-            elif nav_heading > Rover.MAX_STEER_LEFT:
+            elif nav_angle > Rover.MAX_STEER_LEFT:
                 Rover.steer = Rover.MAX_STEER_LEFT
             # Back up e.g. if nav_angles are NaN
             else:
                 Rover.steer = Rover.MAX_STEER_RIGHT
-    
-    # stucktime = 2.3
-    # if Rover.vel >= 1.0:
-    #     if Rover.going_home:
-    #         Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
-    #     else:
-    #         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
 
-    # elif Decider.is_stuck(Rover=Rover):
-    #     Rover.timer_on = False
-    #     if Rover.going_home:
-    #         Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
-    #     else:
-    #         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
+def StoppingAtSample(Decider, Rover):
+    """Create a class to represent StoppingAtSample state."""
 
-
+   
+    Rover.throttle = 0
+    Rover.brake = Rover.MAX_BRAKE
+    Rover.steer = 0
 
 
 def ReturningHome(Decider, Rover):
@@ -236,14 +179,14 @@ def ReturningHome(Decider, Rover):
     home_pixpts_rf = pix_to_rover(Rover.home_coords_world,
                                         Rover.pos, Rover.yaw)
     xpix_pts, ypix_pts = home_pixpts_rf
-    home_distances, home_headings = to_polar_coords(xpix_pts, ypix_pts)
+    distances_from_home, angles_from_home = to_polar_coords(xpix_pts, ypix_pts)
         # Update Rover home polar coordinates
-    Rover.home_distance = np.mean(home_distances)
-    Rover.home_heading = np.mean(home_headings)
+    Rover.distance_from_home = np.mean(distances_from_home)
+    Rover.angle_from_home = np.mean(angles_from_home)
 
         # Drive at a weighted average of home and nav headings with a 3:7 ratio
-    nav_heading = np.mean(Rover.nav_angles)
-    homenav_heading = 0.3*Rover.home_heading + (1 - 0.3)*nav_heading
+    nav_angle = np.mean(Rover.nav_angles)
+    homenav_heading = 0.3*Rover.angle_from_home + (1 - 0.3)*nav_angle
 
         # Keep within max velocity
     if Rover.vel < Rover.MAX_VEL:
@@ -251,18 +194,18 @@ def ReturningHome(Decider, Rover):
     else:
             Rover.throttle = 0
 
-        # Approach at pure nav heading
-    if Rover.home_distance > 450:
+        # Approach at pure nav angle
+    if Rover.distance_from_home > 450:
             Rover.brake = 0
-            Rover.steer = np.clip(nav_heading,
+            Rover.steer = np.clip(nav_angle,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
         # Approach at the weighted average home and nav headings
-    elif 200 < Rover.home_distance <= 450:
+    elif 200 < Rover.distance_from_home <= 450:
             Rover.brake = 0
             Rover.steer = np.clip(homenav_heading,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
-        # Slow down while keeping current heading
-    elif 100 < Rover.home_distance <= 200:
+        # Slow down while keeping current angle
+    elif 100 < Rover.distance_from_home <= 200:
             if Rover.vel < SLOW_VEL:
                 Rover.throttle = SLOW_THROTTLE_SET
             else:
@@ -270,8 +213,8 @@ def ReturningHome(Decider, Rover):
             Rover.brake = 0
             Rover.steer = np.clip(homenav_heading,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
-        # Precisely approach at pure home heading and slow down for parking
-    elif Rover.home_distance <= 100:
+        # Precisely approach at pure home angle and slow down for parking
+    elif Rover.distance_from_home <= 100:
             if Rover.vel > PARK_VEL:
                 Rover.throttle = 0
                 Rover.brake = Rover.MAX_BRAKE
@@ -279,52 +222,20 @@ def ReturningHome(Decider, Rover):
             elif Rover.vel <= PARK_VEL:
                 Rover.brake = 0
                 # yaw left if home to the left more than 23 deg
-                if Rover.home_heading >= 23:
+                if Rover.angle_from_home >= 23:
                     Rover.throttle = 0
                     Rover.steer = Rover.MAX_STEER_LEFT
                 # yaw right if home to the right more than 23 deg
-                elif Rover.home_heading <= -23:
+                elif Rover.angle_from_home <= -23:
                     Rover.throttle = 0
                     Rover.steer = Rover.MAX_STEER_RIGHT
-                # otherwise tread slowly at pure home heading
-                elif -23 < Rover.home_heading < 23:
+                # otherwise tread slowly at pure home angle
+                elif -23 < Rover.angle_from_home < 23:
                     Rover.throttle = PARK_THROTTLE_SET
-                    Rover.steer = np.clip(Rover.home_heading,
+                    Rover.steer = np.clip(Rover.angle_from_home,
                                           Rover.MAX_STEER_RIGHT,
                                           Rover.MAX_STEER_LEFT)
     
-    # """Handle switching from ReturningHome state."""
-    # # Time in seconds allowed to remain stuck in this state
-    # stucktime = 2.5
-    # if obstacle_at_front(Rover=Rover):
-    #     Rover.timer_on = False
-    #     Decider.switch_to_state(Rover, Decider.state[3])  # AvoidingObstacles
-
-    # elif reached_home(Rover=Rover):        
-    #     Rover.timer_on = False
-    #     Decider.switch_to_state(Rover, Decider.state[8])  # ParkingAtHome
-
-    # elif Decider.is_stuck(Rover=Rover):
-    #     Rover.timer_on = False
-    #     Decider.switch_to_state(Rover, Decider.state[6])  # GettingUnstuck
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
-
-
-
-def Stopping(Decider, Rover):
-    """Create a class to represent Stopping state."""
-
-   
-    Rover.throttle = 0
-    Rover.brake = Rover.MAX_BRAKE
-    Rover.steer = 0
-    # """Handle switching from Stopping state."""
-    # Rover.send_pickup = True
-    # if Rover.picking_up == 0:
-    #     Decider.switch_to_state(Rover, Decider.state[2])  # AvoidingLeftWall
-    # else:
-    #     Decider.switch_to_state(Rover, Decider.curr_state)
 
     
 
@@ -336,5 +247,3 @@ def ParkingAtHome(Decider, Rover):
             Rover.throttle = 0
             Rover.brake = Rover.MAX_BRAKE
             Rover.steer = 0
-    # """Handle switching from ParkingAtHome state."""
-    # Decider.switch_to_state(Rover, Decider.state[8])  # Remain in ParkingAtHome

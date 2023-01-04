@@ -164,7 +164,7 @@ def perception_step(Rover, R=0, G=1, B=2):
     Rover.nav_dists, Rover.nav_angles = to_polar_coords( x_nav, y_nav)
     Rover.obs_dists, Rover.obs_angles = to_polar_coords(x_obs, y_obs)
     Rover.rock_dists = to_polar_coords(x_rock, y_rock)[0]
-    # Extract subset of nav_angles that are left of rover heading
+    # Extract subset of nav_angles that are left of rover angle
     Rover.nav_angles_left = Rover.nav_angles[Rover.nav_angles > 0]
 
     # Only include pixels within certain distances from rover (for fidelity)
