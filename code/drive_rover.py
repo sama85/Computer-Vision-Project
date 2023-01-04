@@ -17,7 +17,10 @@ import numpy as np
 import matplotlib.image as mpimg
 from PIL import Image
 from flask import Flask
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrow
 
+debug_mode = True
 
 from perception import perception_step
 import decision
@@ -59,7 +62,7 @@ class RoverState():
         """
         self.start_time = None  # To record the start time of navigation
         self.total_time = None  # To record total duration of navigation
-        self.img = None  # Current camera image
+        self.img = np.zeros((160, 320, 3), dtype=float)  # Current camera image
         self.pos = None  # Current position (x, y)
         self.yaw = None  # Current yaw angle
         self.pitch = None  # Current pitch angle
@@ -137,6 +140,26 @@ frame_counter = 0
 second_counter = time.time()
 fps = None
 
+if debug_mode:
+    # fig = plt.figure()
+    plt.ion()
+    plt.gcf().canvas.manager.set_window_title('Debugging Window')
+    ax1 = plt.subplot(221)
+    ax1.set_title('Rover View')
+    im1 = ax1.imshow(Rover.img)
+    ax2 = plt.subplot(222)
+    ax2.set_title('Bird Eye View')
+    im2 = ax2.imshow(Rover.vision_warped)
+    ax3 = plt.subplot(223)
+    ax3.set_title('Thresholded image')
+    im3 = ax3.imshow(Rover.vision_threshed, cmap='gray')
+    ax4 = plt.subplot(224)
+    ax4.set_title("Steering Angle")
+    im4, = ax4.plot(Rover.x_nav, Rover.y_nav, '.')
+    ax4.set_ylim(-160, 160)
+    ax4.set_xlim(0, 160)
+    arrow = FancyArrow(0,0,0,0)
+    a = ax4.add_patch(arrow)
 
 # Define telemetry function for what to do with incoming data
 @sio.on('telemetry')
@@ -155,8 +178,9 @@ def telemetry(sid, data):
         fps = frame_counter
         frame_counter = 0
         second_counter = time.time()
+    print()
     print("Current FPS: {}".format(fps))
-    print("State ", Decider.curr_state)
+    print("State:", Decider.curr_state.__name__)
 
     if data:
         global Rover
@@ -170,6 +194,28 @@ def telemetry(sid, data):
             # Decider.switch_to_state(Rover, Decider.state[1])
             Rover = Decider.run(Rover)
 
+            if debug_mode:
+                im1.set_data(Rover.img)
+                im2.set_data(Rover.vision_warped.astype(np.uint8))
+                im3.set_data(Rover.vision_threshed)
+                im4.set_data(Rover.x_nav, Rover.y_nav)
+
+                global a
+                a.remove()
+
+                arrow_length = 100
+                mean_nav_angle = np.mean(Rover.nav_angles)
+                x_arrow = arrow_length * np.cos(np.deg2rad(mean_nav_angle))
+                y_arrow = arrow_length * np.sin(np.deg2rad(mean_nav_angle))
+                arrow = FancyArrow(0,0,x_arrow,y_arrow, color="red",zorder=2,
+                                    head_width=10, width=2)
+                a = ax4.add_patch(arrow)                
+    
+                im3.autoscale()                
+                # plt.draw()
+                plt.gcf().canvas.draw_idle()
+                plt.gcf().canvas.start_event_loop(0.01)
+                # plt.pause(0.1)
 
             # Create output images to send to server
             out_image_strings = create_output_images(Rover)
