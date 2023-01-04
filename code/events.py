@@ -50,22 +50,22 @@ def obstacle_on_left(Rover, safe_pixs=50):
     return left_nav_pixs < safe_pixs
 
 
-def sample_on_left(Rover, rock_dist_limit=71, min_left_angle=0.0):
+def sample_located(Rover, rock_dist_limit=71, min_left_angle=0.0, max_right_angle=-17):
 
     rock_angle = np.mean(Rover.rock_angles)
     rock_distance = np.mean(Rover.rock_dists)
 
-    return (rock_angle >= min_left_angle
+    return ((rock_angle >= min_left_angle or rock_angle > max_right_angle)
             and rock_distance < rock_dist_limit)
 
 
-def sample_on_right_close(Rover, rock_dist_limit=75, max_right_angle=17):
+# def sample_on_right_close(Rover, rock_dist_limit=75, max_right_angle=17):
 
-    rock_angle = np.mean(Rover.rock_angles)
-    rock_distance = np.mean(Rover.rock_dists)
+#     rock_angle = np.mean(Rover.rock_angles)
+#     rock_distance = np.mean(Rover.rock_dists)
 
-    return (rock_angle > -max_right_angle
-            and rock_distance < rock_dist_limit)
+#     return (rock_angle > -max_right_angle
+#             and rock_distance < rock_dist_limit)
 
 
 def completed_mission(Rover, min_samples=5, min_mapped=95):

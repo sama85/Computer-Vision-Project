@@ -72,15 +72,15 @@ def AvoidingObstacles(Rover):
         Rover.throttle = 0
         Rover.brake = 0
         
-        # Turn right if nav terrain is more than 15 deg to the right
+        # Turn right if nav terrain is more than 20 deg to the right
         if nav_angle < Rover.MIN_ANGLE_RIGHT:
             Rover.steer = Rover.MAX_STEER_RIGHT
         
-        # Turn left if nav terrain is more than 15 deg to the left
+        # Turn left if nav terrain is more than 20 deg to the left
         elif nav_angle > Rover.MIN_ANGLE_LEFT:
             Rover.steer = Rover.MAX_STEER_LEFT
         
-        # if nav angles are undefined, back up
+        # if nav angles are undefined, back up and turn right
         else:
             Rover.steer = Rover.MAX_STEER_RIGHT
 
@@ -105,29 +105,29 @@ def GoingToSample(Rover):
         # If sample in view
         if rock_pixs >= 1:
             
-            # Add a right bias to angle so as not to bump in left wall
+            # Add a right bias to angle to not hit left wall
             angle_to_rock = np.mean(Rover.rock_angles) + SMALL_WALL_OFFSET
             
-            # Yaw left if rock sample to left more than 23 deg
+            # turn left if rock sample to left more than 20 deg
             if angle_to_rock >= Rover.MIN_ANGLE_LEFT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_LEFT
             
-            # Yaw right if rock sample to right more than -23 deg
+            # turn right if rock sample to right more than 20 deg
             elif angle_to_rock <= Rover.MIN_ANGLE_RIGHT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_RIGHT
             
-            # Otherwise drive at average rock sample angle
+            # Otherwise drive at average rock sample angle and clip it to steering range
             elif (Rover.MIN_ANGLE_RIGHT < angle_to_rock < Rover.MIN_ANGLE_LEFT) or math.isnan(angle_to_rock):
                 Rover.brake = 0
                 Rover.throttle = THROTTLE_SET
                 Rover.steer = np.clip(angle_to_rock,
                                           Rover.MAX_STEER_RIGHT,
                                           Rover.MAX_STEER_LEFT)
-        # rock not in view
+        # rock not in view, turn left
         else:  
             Rover.throttle = 0
             Rover.brake = 0
@@ -157,7 +157,7 @@ def GettingUnstuck(Rover):
             # Turn left if nav terrain is more than 20 deg to the left
             elif nav_angle > Rover.MAX_STEER_LEFT:
                 Rover.steer = Rover.MAX_STEER_LEFT
-            # if nav angles are undefined, back up
+            # if nav angles are undefined, back up and turn right
             else:
                 Rover.steer = Rover.MAX_STEER_RIGHT
 

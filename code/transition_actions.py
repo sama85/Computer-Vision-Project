@@ -12,7 +12,7 @@ def following_left_wall_transitions(Decider, Rover):
         Rover.timer_on = False
         Decider.switch_to_state(Rover, Decider.state[2])  # AvoidingLeftWall
 
-    elif events.sample_on_left(Rover=Rover) or events.sample_on_right_close(Rover=Rover):
+    elif events.sample_located(Rover=Rover):
         Rover.timer_on = False
         Decider.switch_to_state(Rover, Decider.state[4])  # GoingToSample
 
