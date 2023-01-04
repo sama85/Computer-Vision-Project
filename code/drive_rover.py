@@ -82,7 +82,7 @@ class RoverState():
         
         self.nav_dists = None  # Distances to navigable terrain pixels
         self.nav_angles = None  # Angles of navigable terrain pixels
-        self.nav_angles_left = None  # Nav terrain angles left of rover heading
+        self.nav_angles_left = None  # Nav terrain angles left of rover direction
 
         self.obs_dists = None  # Distances to obstacle terrain pixels
         self.obs_angles = None  # Angles of obstacle terrain pixels
@@ -100,12 +100,12 @@ class RoverState():
         self.x_nav = np.zeros(1)
         self.y_nav = np.zeros(1)
 
-        self.home_distance = None  # Current distance to starting location
-        self.home_heading = None  # Current heading to starting location
+        self.distance_from_home = None  # Current distance to starting location
+        self.angle_from_home = None  # Current angle to starting location
         self.going_home = False  # Default rover configuration
 
         self.timer_on = False  # Timer to determine duration of stuck
-        self.stuck_heading = 0.0  # Heading at the time of getting stuck
+        self.curr_stuck_angle = 0.0  # angle at the time of getting stuck
 
         # Rover vision image to be updated with displays of
         # intermediate analysis steps on screen in autonomous mode
@@ -164,10 +164,10 @@ def telemetry(sid, data):
 
         if np.isfinite(Rover.vel):
 
-            # Execute perception and decision steps to update Rover's telemetry
+            # run perception and decision steps to update Rover's telemetry
             Rover = perception_step(Rover)
             # Decider.switch_to_state(Rover, Decider.state[1])
-            Rover = Decider.execute(Rover)
+            Rover = Decider.run(Rover)
 
 
             # Create output images to send to server
