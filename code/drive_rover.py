@@ -171,7 +171,7 @@ def telemetry(sid, data):
 
 
             # Create output images to send to server
-            out_image_strings = create_output_images(Rover, Decider)
+            out_image_strings = create_output_images(Rover)
             out_image_string1, out_image_string2 = out_image_strings
 
             # The action step!  Send commands to the rover!
