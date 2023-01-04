@@ -97,10 +97,10 @@ def inv_translate_pixels(pixels, translation, scale_factor=10):
     translation_x, translation_y = translation
     x_pixels, y_pixels = pixels
 
-    x_pixels_rotated = (x_pixels - translation_x)*scale_factor
-    y_pixels_rotated = (y_pixels - translation_y)*scale_factor
+    x_pixels_translated = (x_pixels - translation_x)*scale_factor
+    y_pixels_translated = (y_pixels - translation_y)*scale_factor
 
-    return x_pixels_rotated,y_pixels_rotated
+    return x_pixels_translated,y_pixels_translated
 
 def pix_to_world(pixels_rover, rover_pos, rover_yaw, world_size=200):
     
