@@ -30,7 +30,7 @@ class DecisionMaker():
     def switch_to_state(self, Rover, name):
 
         self.curr_state = name
-        name(self,Rover)
+        name(Rover)
 
     def run(self, Rover):
 
