@@ -1,8 +1,3 @@
-"""
-Module for rover state actuation.
-
-"""
-
 
 import numpy as np
 import math 
@@ -10,57 +5,51 @@ from perception import pix_to_rover, to_polar_coords
 
 
 
-def FollowingLeftWall(Decider, Rover):
-    """Create a class to represent FollowingLeftWall state."""
+def FollowingLeftWall(Rover):
+
     THROTTLE_SET = 0.8
     LARGE_WALL_OFFSET = -9
 
-    # Add negative bias to nav angles left of rover to follow wall and not hit wall
+    # Add negative bias to nav angles left of rover to fnot hit wall
     angle_to_wall = np.mean(Rover.nav_angles_left) + LARGE_WALL_OFFSET
     
-    # If drive below max velocity, accelerate
     if Rover.vel < Rover.MAX_VEL:
         Rover.throttle = THROTTLE_SET
     else:
         Rover.throttle = 0
     
-    # Steer to keep at angle that follows wall
     Rover.brake = 0
+
     #clip angle to be in steering range
     Rover.steer = np.clip(angle_to_wall,
                               Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
 
-    
-     
-                              
 
 
-def TurningToLeftWall(Decider, Rover):
-    """Create a class to represent TurningToLeftWall state."""
+def TurningToLeftWall( Rover):
 
-        # Stopping before turning
+    # Stop before turning left
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
         Rover.steer = 0
+    
     # Turn left towards wall
     elif Rover.vel <= Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = 0
         Rover.steer = Rover.MAX_STEER_LEFT
     
-    
 
-def AvoidingLeftWall(Decider, Rover):
-    """Create a class to represent AvoidingLeftWall state."""
+def AvoidingLeftWall(Rover):
 
-    
-        # Stopping before turning
+    # Stop before turning right
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
         Rover.steer = 0
-        # Turn right to avoid left wall
+    
+    # Turn right to avoid left wall
     elif Rover.vel <= Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = 0
@@ -68,108 +57,119 @@ def AvoidingLeftWall(Decider, Rover):
     
 
 
-def AvoidingObstacles(Decider, Rover):
-    """Create a class to represent AvoidingObstacles state."""
-
+def AvoidingObstacles(Rover):
 
     nav_angle = np.mean(Rover.nav_angles)
-        # Stopping before avoiding obstacles
+    
+    # Stop before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
         Rover.steer = 0
-        # Turn left or right depending on where nav terrain is
+
+    # check where navigable terrain is and turn left or right
     elif Rover.vel <= Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = 0
-            # Turn right if nav terrain is more than 15 deg to the right
+        
+        # Turn right if nav terrain is more than 15 deg to the right
         if nav_angle < Rover.MIN_ANGLE_RIGHT:
             Rover.steer = Rover.MAX_STEER_RIGHT
-            # Turn left if nav terrain is more than 15 deg to the left
+        
+        # Turn left if nav terrain is more than 15 deg to the left
         elif nav_angle > Rover.MIN_ANGLE_LEFT:
             Rover.steer = Rover.MAX_STEER_LEFT
-            # Back up e.g. if nav_angles are NaN
+        
+        # if nav angles are undefined, back up
         else:
             Rover.steer = Rover.MAX_STEER_RIGHT
 
 
-def GoingToSample(Decider, Rover):
-    """Create a class to represent GoingToSample state."""
+def GoingToSample(Rover):
 
     THROTTLE_SET = 0.39
     APPROACH_VEL = 1.0
     SMALL_WALL_OFFSET = -3.6
 
     rock_pixs = len(Rover.rock_angles)
-        # Stopping before going to sample
+    
+    # Stop before going to sample
     if Rover.vel > APPROACH_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
         Rover.steer = 0
-        # Drive to sample
+    
+    # Drive to sample
     elif(Rover.vel <= APPROACH_VEL):
-            # If sample in view
+            
+        # If sample in view
         if rock_pixs >= 1:
-                # Add a right bias to angle so as not to bump in left wall
+            
+            # Add a right bias to angle so as not to bump in left wall
             angle_to_rock = np.mean(Rover.rock_angles) + SMALL_WALL_OFFSET
-                # Yaw left if rock sample to left more than 23 deg
+            
+            # Yaw left if rock sample to left more than 23 deg
             if angle_to_rock >= Rover.MIN_ANGLE_LEFT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_LEFT
-                # Yaw right if rock sample to right more than -23 deg
+            
+            # Yaw right if rock sample to right more than -23 deg
             elif angle_to_rock <= Rover.MIN_ANGLE_RIGHT:
                 Rover.throttle = 0
                 Rover.brake = 0
                 Rover.steer = Rover.MAX_STEER_RIGHT
-                # Otherwise drive at average rock sample angle
+            
+            # Otherwise drive at average rock sample angle
             elif (Rover.MIN_ANGLE_RIGHT < angle_to_rock < Rover.MIN_ANGLE_LEFT) or math.isnan(angle_to_rock):
                 Rover.brake = 0
                 Rover.throttle = THROTTLE_SET
                 Rover.steer = np.clip(angle_to_rock,
                                           Rover.MAX_STEER_RIGHT,
                                           Rover.MAX_STEER_LEFT)
-        else:  # rock not in view
+        # rock not in view
+        else:  
             Rover.throttle = 0
             Rover.brake = 0
             Rover.steer = Rover.MAX_STEER_LEFT
 
 
 
-def GettingUnstuck(Decider, Rover):
+def GettingUnstuck(Rover):
 
     nav_angle = np.mean(Rover.nav_angles)
-        # Stopping before avoiding obstacles
+    
+    # Stopping before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
             Rover.throttle = 0
             Rover.brake = Rover.MAX_BRAKE
             Rover.steer = 0
-        # Turn left or right depending on where nav terrain is
+    
+    # check where navigable terrain is and turn left or right
     elif Rover.vel <= Rover.MIN_VEL:
             Rover.throttle = 0
             Rover.brake = 0
+
             # Turn right if nav terrain is more than 20 deg to the right
             if nav_angle < Rover.MAX_STEER_RIGHT:
                 Rover.steer = Rover.MAX_STEER_RIGHT
+            
             # Turn left if nav terrain is more than 20 deg to the left
             elif nav_angle > Rover.MAX_STEER_LEFT:
                 Rover.steer = Rover.MAX_STEER_LEFT
-            # Back up e.g. if nav_angles are NaN
+            # if nav angles are undefined, back up
             else:
                 Rover.steer = Rover.MAX_STEER_RIGHT
 
-def StoppingAtSample(Decider, Rover):
-    """Create a class to represent StoppingAtSample state."""
-
+def StoppingAtSample(Rover):
    
     Rover.throttle = 0
     Rover.brake = Rover.MAX_BRAKE
     Rover.steer = 0
 
 
-def ReturningHome(Decider, Rover):
-    """Create a class to represent ReturningHome state."""
-    
+def ReturningHome(Rover):
+
     SLOW_VEL = 1.0
     PARK_VEL = 0.5
     MAX_THROTTLE_SET = 0.8
@@ -180,31 +180,34 @@ def ReturningHome(Decider, Rover):
                                         Rover.pos, Rover.yaw)
     xpix_pts, ypix_pts = home_pixpts_rf
     distances_from_home, angles_from_home = to_polar_coords(xpix_pts, ypix_pts)
-        # Update Rover home polar coordinates
+    
+    # Update Rover home polar coordinates
     Rover.distance_from_home = np.mean(distances_from_home)
     Rover.angle_from_home = np.mean(angles_from_home)
 
-        # Drive at a weighted average of home and nav headings with a 3:7 ratio
+    # Drive at a weighted average of home and nav headings with a 3:7 ratio
     nav_angle = np.mean(Rover.nav_angles)
     homenav_heading = 0.3*Rover.angle_from_home + (1 - 0.3)*nav_angle
 
-        # Keep within max velocity
+    # Keep within max velocity
     if Rover.vel < Rover.MAX_VEL:
             Rover.throttle = MAX_THROTTLE_SET
     else:
             Rover.throttle = 0
 
-        # Approach at pure nav angle
+    # Approach at pure nav angle
     if Rover.distance_from_home > 450:
             Rover.brake = 0
             Rover.steer = np.clip(nav_angle,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
-        # Approach at the weighted average home and nav headings
+    
+    # Approach at the weighted average home and nav headings
     elif 200 < Rover.distance_from_home <= 450:
             Rover.brake = 0
             Rover.steer = np.clip(homenav_heading,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
-        # Slow down while keeping current angle
+    
+    # Slow down while keeping current angle
     elif 100 < Rover.distance_from_home <= 200:
             if Rover.vel < SLOW_VEL:
                 Rover.throttle = SLOW_THROTTLE_SET
@@ -213,7 +216,8 @@ def ReturningHome(Decider, Rover):
             Rover.brake = 0
             Rover.steer = np.clip(homenav_heading,
                                   Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
-        # Precisely approach at pure home angle and slow down for parking
+    
+    # Precisely approach at pure home angle and slow down for parking
     elif Rover.distance_from_home <= 100:
             if Rover.vel > PARK_VEL:
                 Rover.throttle = 0
@@ -239,10 +243,9 @@ def ReturningHome(Decider, Rover):
 
     
 
-def ParkingAtHome(Decider, Rover):
-    """Create a class to represent ParkingAtHome state."""
+def ParkingAtHome(Rover):
     
-        # Brake if still moving
+    # Brake if still moving
     if Rover.vel > Rover.MIN_VEL:
             Rover.throttle = 0
             Rover.brake = Rover.MAX_BRAKE

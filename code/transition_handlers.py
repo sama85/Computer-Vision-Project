@@ -1,13 +1,8 @@
-"""
-Module for handling switching from states.
 
-"""
 import events
 
 
-
 def following_left_wall_transitions(Decider, Rover):
-    """Handle switching from FollowingLeftWall state."""
  
     if events.deviated_from_left_wall(Rover=Rover):        
         Rover.timer_on = False
@@ -33,21 +28,21 @@ def following_left_wall_transitions(Decider, Rover):
 
 
 def turning_to_left_wall_transitions(Decider, Rover):
-    """Handle switching from TurningToLeftWall state."""
+
     if events.pointed_along_wall(Rover=Rover):
         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
     else:
         Decider.switch_to_state(Rover, Decider.curr_state)
 
 def avoiding_left_wall_transitions(Decider, Rover):
-    """Handle switching from AvoidingLeftWall state."""
+
     if events.pointed_along_wall(Rover=Rover):
         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
     else:
         Decider.switch_to_state(Rover, Decider.curr_state)
 
 def avoiding_obstacles_transitions(Decider, Rover):
-    """Handle switching from AvoidingObstacles state."""
+
     if events.completed_mission(Rover=Rover):
         Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
     elif events.pointed_along_wall(Rover=Rover):
@@ -56,8 +51,7 @@ def avoiding_obstacles_transitions(Decider, Rover):
         Decider.switch_to_state(Rover, Decider.curr_state)
 
 def going_to_sample_transitions(Decider, Rover):
-    """Handle switching from GoingToSample state."""
-    # Time in seconds allowed to remain stuck in this state
+    
     if Rover.near_sample:
         Rover.timer_on = False
         Decider.switch_to_state(Rover, Decider.state[5])  # StoppingAtSample
@@ -69,9 +63,7 @@ def going_to_sample_transitions(Decider, Rover):
         Decider.switch_to_state(Rover, Decider.curr_state)
 
 def getting_unstuck_transitions(Decider, Rover):
-    """Handle switching from GettingUnstuck state."""
-    # If reached sufficient velocity or stuck while in GettingUnstuck state
-    # then get out of GettingUnstuck state
+
     if Rover.vel >= 1.0:
         if Rover.going_home:
             Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
@@ -88,7 +80,7 @@ def getting_unstuck_transitions(Decider, Rover):
         Decider.switch_to_state(Rover, Decider.curr_state)
 
 def stopping_at_sample_transitions(Decider, Rover):
-    """Handle switching from StoppingAtSample state."""
+
     Rover.send_pickup = True
     if Rover.picking_up == 0:
         Decider.switch_to_state(Rover, Decider.state[2])  # AvoidingLeftWall
@@ -99,8 +91,7 @@ def stopping_at_sample_transitions(Decider, Rover):
 
 
 def returning_home_transitions(Decider, Rover):
-    """Handle switching from ReturningHome state."""
-    # Time in seconds allowed to remain stuck in this state
+
     if events.obstacle_at_front(Rover=Rover):
         Rover.timer_on = False
         Decider.switch_to_state(Rover, Decider.state[3])  # AvoidingObstacles
@@ -117,5 +108,5 @@ def returning_home_transitions(Decider, Rover):
 
 
 def parking_at_home_transitions(Decider, Rover):
-    """Handle switching from ParkingAtHome state."""
+    
     Decider.switch_to_state(Rover, Decider.state[8])  # Remain in ParkingAtHome

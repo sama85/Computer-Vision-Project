@@ -1,9 +1,5 @@
 """
-Module for rover decision-handling.
-
-Used to build a decision tree for determining throttle, brake and
-steer commands based on the output of the perception_step() function
-in the perception module.
+Main module for decision handling
 
 """
 import states
@@ -29,6 +25,7 @@ class DecisionMaker():
 
 
         self.curr_state = self.state[1]  # TurningToLeftWall
+        print(self.curr_state)
 
     def switch_to_state(self, Rover, name):
 
@@ -36,11 +33,9 @@ class DecisionMaker():
         name(self,Rover)
 
     def run(self, Rover):
-        """Select and call the handler for the current state."""
 
-        # Ensure Rover telemetry data is coming in
         if Rover.nav_angles is not None:
-            # Defining the handlers of each state
+            # Mapping each handler to its corresponding state
             select = {
                 self.state[0]: transition_handlers.following_left_wall_transitions,
                 self.state[1]: transition_handlers.turning_to_left_wall_transitions,
@@ -52,7 +47,6 @@ class DecisionMaker():
                 self.state[7]: transition_handlers.returning_home_transitions,
                 self.state[8]: transition_handlers.parking_at_home_transitions
             }
-            # Select and call the handler function for the current state
             func = select.get(self.curr_state)
 
             if func is not None:

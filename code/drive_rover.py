@@ -156,6 +156,7 @@ def telemetry(sid, data):
         frame_counter = 0
         second_counter = time.time()
     print("Current FPS: {}".format(fps))
+    print("State ", Decider.curr_state)
 
     if data:
         global Rover
