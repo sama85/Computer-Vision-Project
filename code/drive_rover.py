@@ -108,7 +108,7 @@ class RoverState():
         self.going_home = False  # Default rover configuration
 
         self.timer_on = False  # Timer to determine duration of stuck
-        self.curr_stuck_angle = 0.0  # angle at the time of getting stuck
+        
 
         # Rover vision image to be updated with displays of
         # intermediate analysis steps on screen in autonomous mode
