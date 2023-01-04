@@ -6,7 +6,7 @@ Module for rover state actuation.
 
 import numpy as np
 import math 
-from perception import world_to_rover, to_polar_coords
+from perception import pix_to_rover, to_polar_coords
 
 
 def FollowWall(Rover):
@@ -177,7 +177,7 @@ def ReturnHome(Rover):
     SLOW_THROTTLE_SET = 0.2
     PARK_THROTTLE_SET = 0.3
 
-    home_pixpts_rf = world_to_rover(Rover.home_coords_world,
+    home_pixpts_rf = pix_to_rover(Rover.home_coords_world,
                                         Rover.pos, Rover.yaw)
     xpix_pts, ypix_pts = home_pixpts_rf
     home_distances, home_headings = to_polar_coords(xpix_pts, ypix_pts)

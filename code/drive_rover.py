@@ -104,6 +104,9 @@ class RoverTelemetry():
         self.picking_up = 0  # To be set to TLM value data["picking_up"]
         self.send_pickup = False  # Set to True to trigger rock pickup
 
+        self.x_nav = np.zeros(1)
+        self.y_nav = np.zeros(1)
+
         self.home_distance = None  # Current distance to starting location
         self.home_heading = None  # Current heading to starting location
         self.going_home = False  # Default rover configuration
@@ -114,7 +117,9 @@ class RoverTelemetry():
         # Rover vision image to be updated with displays of
         # intermediate analysis steps on screen in autonomous mode
         self.vision_image = np.zeros((160, 320, 3), dtype=np.float32)
-
+        self.vision_warped = np.zeros((160, 320, 3), dtype=float)
+        self.vision_threshed = np.zeros((160, 320), dtype=float)
+        self.vision_mask = np.zeros((160, 320), dtype=float)
         # Worldmap image to be updated with the positions of
         # ROIs navigable terrain, obstacles and rock samples
         self.worldmap = np.zeros((200, 200, 3), dtype=np.float32)
