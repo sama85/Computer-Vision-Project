@@ -1,25 +1,15 @@
 """
-Main module for Mars Search Robot.
-
-Gets rover telemetry data and supervises core tasks of
-autonomous navigation and mapping
-
+Main controller module.
 """
 
 
-# Standard library imports
 import os
 import time
-import json
-import base64
 import shutil
-import pickle
 import argparse
 from datetime import datetime
-from io import BytesIO, StringIO
 
 # Related third party imports
-import cv2
 import socketio
 import eventlet
 import eventlet.wsgi
@@ -28,7 +18,7 @@ import matplotlib.image as mpimg
 from PIL import Image
 from flask import Flask
 
-# Local application/library specific imports
+
 from perception import perception_step
 import decision
 from supporting_functions import update_rover, create_output_images
@@ -51,7 +41,7 @@ ground_truth_3d = np.dstack(
 ).astype(np.float32)
 
 
-class RoverTelemetry():
+class RoverState():
     """
     Create a class to be a container for rover state telemetry values.
 
@@ -62,7 +52,7 @@ class RoverTelemetry():
 
     def __init__(self):
         """
-        Initialize a RoverTelemetry instance to retain parameters.
+        Initialize a RoverState instance to retain parameters.
 
         NOTE: distances in meters and angles in degrees
 
@@ -86,6 +76,9 @@ class RoverTelemetry():
         self.MAX_BRAKE = 10
         self.MIN_ANGLE_LEFT = 20
         self.MIN_ANGLE_RIGHT = -20
+        self.MAX_STUCK_TIME = 3
+
+        self.start_stuck_time = 0
         
         self.nav_dists = None  # Distances to navigable terrain pixels
         self.nav_angles = None  # Angles of navigable terrain pixels
@@ -131,10 +124,10 @@ class RoverTelemetry():
 
 
 # Initialize our rover
-Rover = RoverTelemetry()
+Rover = RoverState()
 
 # Initialize decision supervisor
-Decider = decision.DecisionSupervisor()
+Decider = decision.DecisionMaker()
 
 # Variables to track frames per second (FPS)
 # Initialize frame counter
@@ -173,7 +166,9 @@ def telemetry(sid, data):
 
             # Execute perception and decision steps to update Rover's telemetry
             Rover = perception_step(Rover)
+            # Decider.switch_to_state(Rover, Decider.state[1])
             Rover = Decider.execute(Rover)
+
 
             # Create output images to send to server
             out_image_strings = create_output_images(Rover, Decider)

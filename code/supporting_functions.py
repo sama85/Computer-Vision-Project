@@ -212,7 +212,7 @@ def create_output_images(Rover, Decider):
     cv2.putText(map_add, ""+str(Rover.samples_collected),
                 (80, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1)
 
-    # Add information about ReturnHome state on map display
+    # Add information about ReturningHome state on map display
     if Rover.going_home:
         cv2.putText(map_add, "Going Home:",
                     (2, 145),

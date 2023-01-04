@@ -9,8 +9,9 @@ import math
 from perception import pix_to_rover, to_polar_coords
 
 
-def FollowWall(Rover):
-    """Create a class to represent FollowWall state."""
+
+def FollowingLeftWall(Decider, Rover):
+    """Create a class to represent FollowingLeftWall state."""
     THROTTLE_SET = 0.8
     LARGE_WALL_OFFSET = -9
 
@@ -29,11 +30,15 @@ def FollowWall(Rover):
     Rover.steer = np.clip(wall_heading,
                               Rover.MAX_STEER_RIGHT, Rover.MAX_STEER_LEFT)
 
+    
+     
+                              
 
-def TurnToWall(Rover):
-    """Create a class to represent TurnToWall state."""
 
-        # Stop before turning
+def TurningToLeftWall(Decider, Rover):
+    """Create a class to represent TurningToLeftWall state."""
+
+        # Stopping before turning
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
@@ -43,12 +48,14 @@ def TurnToWall(Rover):
         Rover.throttle = 0
         Rover.brake = 0
         Rover.steer = Rover.MAX_STEER_LEFT
+    
+    
 
-def AvoidWall(Rover):
-    """Create a class to represent AvoidWall state."""
+def AvoidingLeftWall(Decider, Rover):
+    """Create a class to represent AvoidingLeftWall state."""
 
     
-        # Stop before turning
+        # Stopping before turning
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
@@ -58,14 +65,21 @@ def AvoidWall(Rover):
         Rover.throttle = 0
         Rover.brake = 0
         Rover.steer = Rover.MAX_STEER_RIGHT
+    
+    # """Handle switching from AvoidingLeftWall state."""
+    # if pointed_along_wall(Rover=Rover):
+    #     Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
 
 
-def AvoidObstacles(Rover):
-    """Create a class to represent AvoidObstacles state."""
+
+def AvoidingObstacles(Decider, Rover):
+    """Create a class to represent AvoidingObstacles state."""
 
 
     nav_heading = np.mean(Rover.nav_angles)
-        # Stop before avoiding obstacles
+        # Stopping before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
@@ -84,16 +98,26 @@ def AvoidObstacles(Rover):
         else:
             Rover.steer = Rover.MAX_STEER_RIGHT
 
+    # """Handle switching from AvoidingObstacles state."""
+    # stucktime = 2.0
+    # if completed_mission(Rover=Rover):
+    #     Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
+    # elif pointed_along_wall(Rover=Rover):
+    #     Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
 
-def GoToSample(Rover):
-    """Create a class to represent GoToSample state."""
+
+
+def GoingToSample(Decider, Rover):
+    """Create a class to represent GoingToSample state."""
 
     THROTTLE_SET = 0.39
     APPROACH_VEL = 1.0
     SMALL_WALL_OFFSET = -3.6
 
     rock_pixs = len(Rover.rock_angles)
-        # Stop before going to sample
+        # Stopping before going to sample
     if Rover.vel > APPROACH_VEL:
         Rover.throttle = 0
         Rover.brake = Rover.MAX_BRAKE
@@ -127,8 +151,22 @@ def GoToSample(Rover):
             Rover.brake = 0
             Rover.steer = Rover.MAX_STEER_LEFT
 
+    # """Handle switching from GoingToSample state."""
+    # # Time in seconds allowed to remain stuck in this state
+    # stucktime = 4.0
+    # if Rover.near_sample:
+    #     Rover.timer_on = False
+    #     Decider.switch_to_state(Rover, Decider.state[5])  # Stopping
 
-def GetUnstuck(Rover):
+    # elif Decider.is_stuck(Rover=Rover):
+    #     Rover.timer_on = False
+    #     Decider.switch_to_state(Rover, Decider.state[6])  # GettingUnstuck
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
+
+
+
+def GettingUnstuck(Decider, Rover):
 
     # THROTTLE_SET = 1.0
     # OBS_OFFSET_YAW = 35
@@ -148,7 +186,7 @@ def GetUnstuck(Rover):
     #     Rover.throttle = THROTTLE_SET
 
     nav_heading = np.mean(Rover.nav_angles)
-        # Stop before avoiding obstacles
+        # Stopping before avoiding obstacles
     if Rover.vel > Rover.MIN_VEL:
             Rover.throttle = 0
             Rover.brake = Rover.MAX_BRAKE
@@ -166,10 +204,28 @@ def GetUnstuck(Rover):
             # Back up e.g. if nav_angles are NaN
             else:
                 Rover.steer = Rover.MAX_STEER_RIGHT
+    
+    # stucktime = 2.3
+    # if Rover.vel >= 1.0:
+    #     if Rover.going_home:
+    #         Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
+    #     else:
+    #         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
+
+    # elif Decider.is_stuck(Rover=Rover):
+    #     Rover.timer_on = False
+    #     if Rover.going_home:
+    #         Decider.switch_to_state(Rover, Decider.state[7])  # ReturningHome
+    #     else:
+    #         Decider.switch_to_state(Rover, Decider.state[0])  # FollowingLeftWall
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
 
 
-def ReturnHome(Rover):
-    """Create a class to represent ReturnHome state."""
+
+
+def ReturningHome(Decider, Rover):
+    """Create a class to represent ReturningHome state."""
     
     SLOW_VEL = 1.0
     PARK_VEL = 0.5
@@ -236,21 +292,49 @@ def ReturnHome(Rover):
                     Rover.steer = np.clip(Rover.home_heading,
                                           Rover.MAX_STEER_RIGHT,
                                           Rover.MAX_STEER_LEFT)
+    
+    # """Handle switching from ReturningHome state."""
+    # # Time in seconds allowed to remain stuck in this state
+    # stucktime = 2.5
+    # if obstacle_at_front(Rover=Rover):
+    #     Rover.timer_on = False
+    #     Decider.switch_to_state(Rover, Decider.state[3])  # AvoidingObstacles
 
-def Stop(Rover):
-    """Create a class to represent Stop state."""
+    # elif reached_home(Rover=Rover):        
+    #     Rover.timer_on = False
+    #     Decider.switch_to_state(Rover, Decider.state[8])  # ParkingAtHome
+
+    # elif Decider.is_stuck(Rover=Rover):
+    #     Rover.timer_on = False
+    #     Decider.switch_to_state(Rover, Decider.state[6])  # GettingUnstuck
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
+
+
+
+def Stopping(Decider, Rover):
+    """Create a class to represent Stopping state."""
 
    
     Rover.throttle = 0
     Rover.brake = Rover.MAX_BRAKE
     Rover.steer = 0
+    # """Handle switching from Stopping state."""
+    # Rover.send_pickup = True
+    # if Rover.picking_up == 0:
+    #     Decider.switch_to_state(Rover, Decider.state[2])  # AvoidingLeftWall
+    # else:
+    #     Decider.switch_to_state(Rover, Decider.curr_state)
+
     
 
-def Park(Rover):
-    """Create a class to represent Park state."""
+def ParkingAtHome(Decider, Rover):
+    """Create a class to represent ParkingAtHome state."""
     
         # Brake if still moving
     if Rover.vel > Rover.MIN_VEL:
             Rover.throttle = 0
             Rover.brake = Rover.MAX_BRAKE
             Rover.steer = 0
+    # """Handle switching from ParkingAtHome state."""
+    # Decider.switch_to_state(Rover, Decider.state[8])  # Remain in ParkingAtHome
