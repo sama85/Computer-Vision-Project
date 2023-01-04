@@ -10,7 +10,6 @@ def is_stuck(Rover):
             # if the timer is not on, then the rover just got stuck now. Initialize timer
             if not Rover.timer_on:
                 Rover.start_stuck_time = time.time()
-                Rover.curr_stuck_angle = Rover.yaw
                 Rover.timer_on = True
             else:
                 endtime = time.time()
@@ -18,7 +17,7 @@ def is_stuck(Rover):
         # no longer stuck. turn off timer
         else:  
             Rover.timer_on = False
-            Rover.curr_stuck_angle = 0.0
+            
         return exceeded_stucktime
 
 

@@ -91,7 +91,6 @@ class RoverState():
 
         self.rock_dists = None  # Distances to rock terrain pixels
         self.rock_angles = None  # Angles of rock terrain pixels
-
         self.samples_pos = None  # To store the actual sample positions
         self.samples_to_find = 0  # To store the initial count of samples
         self.samples_collected = 0  # To count the number of samples collected
@@ -107,7 +106,7 @@ class RoverState():
         self.going_home = False  # Default rover configuration
 
         self.timer_on = False  # Timer to determine duration of stuck
-        self.curr_stuck_angle = 0.0  # angle at the time of getting stuck
+        
 
         # Rover vision image to be updated with displays of
         # intermediate analysis steps on screen in autonomous mode
